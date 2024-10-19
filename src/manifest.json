@@ -1,0 +1,26 @@
+{
+    "manifest_version": 3,
+    "name": "FrameSync",
+    "version": "1.0",
+    "description": "Delays video to sync with wireless audio using tools like TuneBlade.",
+    "permissions": [
+        "activeTab",
+        "storage"
+    ],
+    "action": {
+        "default_popup": "popup.html"
+    },
+    "content_scripts": [
+        {
+            "matches": [
+                "<all_urls>"
+            ],
+            "js": [
+                "content.js"
+            ]
+        }
+    ],
+    "icons": {
+        "256": "icon.png"
+    }
+}
