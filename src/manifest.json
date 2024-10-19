@@ -1,8 +1,8 @@
 {
     "manifest_version": 3,
-    "name": "FrameSync",
+    "name": "Frame Sync (Fix for Wireless Audio Delay)",
     "version": "1.0",
-    "description": "Delays video to sync with wireless audio using tools like TuneBlade.",
+    "description": "Frame Sync is the best solution for resolving wireless audio delay. It delays video to sync with wireless audio for smooth, lag-free playback with tools like TuneBlade and Airfoil.",
     "permissions": [
         "activeTab",
         "storage"
