@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="UTF-8">
+    <title>Wireless Speaker Delay Measurement</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            margin-top: 50px;
+        }
+
+        button {
+            padding: 10px 20px;
+            font-size: 16px;
+        }
+
+        #result {
+            margin-top: 20px;
+            font-size: 18px;
+        }
+
+        #waveform {
+            margin-top: 30px;
+            width: 80%;
+            height: 200px;
+            border: 1px solid #ccc;
+        }
+
+        p{
+            font-size: 16px;
+        }
+    </style>
+</head>
+
+<body>
+    <h1>Wireless Speaker Delay Measurement</h1>
+    <button id="startButton">Start Test</button>
+    <button id="useThisDelayButton" style="display: none;">Use This Delay</button>
+    <p id="result"></p>
+    <canvas id="waveform"></canvas>
+    <hr>
+    <h2>Usage Instructions:</h2>
+    <p>This tool plays a high-frequency sound to measure the delay of your wireless speaker. Please set your computer's sound output to the wireless speaker.</p>
+    <p>When prompted, grant microphone access. The tool will record a 4-second audio clip of the sound received through the microphone to calculate the delay. If the delay exceeds 4 seconds, the measurement may fail.</p>
+    <p>For best results, place your computer as close as possible to the speaker and keep the surrounding environment quiet.</p>
+    <b>If the measurement fails, you can manually set the delay in the extension popup.</b>
+    <script src="./measure.js">
+    </script>
+</body>
+
+</html>
