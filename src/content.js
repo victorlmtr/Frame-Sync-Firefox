@@ -47,6 +47,11 @@
             this._captureFrameFunc = this._captureFrame.bind(this);
             this._drawFrameFunc = this._drawFrame.bind(this);
             this._resizeFunc = this.Resize.bind(this);
+
+            this.lastVideoOffsetWidth = video.offsetWidth;
+            this.lastVideoOffsetHeight = video.offsetHeight;
+            this.lastVideoOffsetLeft = video.offsetLeft;
+            this.lastVideoOffsetTop = video.offsetTop;
         }
 
         SetMaxBuffer(maxBuffer) {
@@ -67,6 +72,24 @@
             canvas.style.height = `${video.offsetHeight}px`;
             canvas.style.left = `${video.offsetLeft}px`;
             canvas.style.top = `${video.offsetTop}px`;
+
+            const videoAspect = video.videoWidth / video.videoHeight;
+            const canvasAspect = video.offsetWidth / video.offsetHeight;
+            if (Math.abs(videoAspect / canvasAspect - 1) < 0.02) {
+                // aspect ratio is close enough, do nothing
+            } else if (videoAspect > canvasAspect) {
+                canvas.style.height = `${video.offsetWidth / videoAspect}px`;
+                canvas.style.top = `${video.offsetTop + (video.offsetHeight - video.offsetWidth / videoAspect) / 2}px`;
+            } else {
+                canvas.style.width = `${video.offsetHeight * videoAspect}px`;
+                canvas.style.left = `${video.offsetLeft + (video.offsetWidth - video.offsetHeight * videoAspect) / 2}px`;
+            }
+
+            this.lastVideoOffsetWidth = video.offsetWidth;
+            this.lastVideoOffsetHeight = video.offsetHeight;
+            this.lastVideoOffsetLeft = video.offsetLeft;
+            this.lastVideoOffsetTop = video.offsetTop;
+
             for (let i = 0; i < this.maxBuffer; i++) {
                 this.buffer[i].Resize();
             }
@@ -76,8 +99,8 @@
             const video = this.video;
             const canvas = this.canvas;
             return canvas.width != video.videoWidth || canvas.height != video.videoHeight
-                || canvas.style.width != `${video.offsetWidth}px` || canvas.style.height != `${video.offsetHeight}px`
-                || canvas.style.left != `${video.offsetLeft}px` || canvas.style.top != `${video.offsetTop}px`;
+                || this.lastVideoOffsetWidth != video.offsetWidth || this.lastVideoOffsetHeight != video.offsetHeight
+                || this.lastVideoOffsetLeft != video.offsetLeft || this.lastVideoOffsetTop != video.offsetTop;
         }
 
         _createCanvasOverlay() {
@@ -85,15 +108,7 @@
             const ctx = canvas.getContext('2d');
             const video = this.video;
 
-            // TODO update canvas size when video size changes
-            canvas.width = video.videoWidth;
-            canvas.height = video.videoHeight;
-
             canvas.style.position = 'absolute';
-            canvas.style.left = `${video.offsetLeft}px`;
-            canvas.style.top = `${video.offsetTop}px`;
-            canvas.style.width = `${video.offsetWidth}px`;
-            canvas.style.height = `${video.offsetHeight}px`;
             const videoStyle = window.getComputedStyle(video);
             canvas.style.zIndex = videoStyle.zIndex;
             canvas.style.pointerEvents = 'none';
@@ -105,6 +120,7 @@
 
             this.canvas = canvas;
             this.ctx = ctx;
+            this.Resize();
         }
 
         _captureFrame() {
