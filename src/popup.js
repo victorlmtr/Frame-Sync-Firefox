@@ -10,11 +10,14 @@ onFrameDelayChange = (event) => {
     const frameDelay = event.target.value;
     try {
         const frameDelayNum = parseInt(frameDelay);
+        if (isNaN(frameDelayNum)) {
+            throw new Error('Invalid frame delay');
+        }
         chrome.storage.sync.set({ frameDelay: frameDelayNum });
     } catch {
-        chrome.storage.sync.set({ frameDelay: undefined });
+        chrome.storage.sync.set({ frameDelay: '' });
     }
 }
 
 const frameDelayInput = document.getElementById('frameDelay');
-frameDelayInput.addEventListener('change', onFrameDelayChange);
+frameDelayInput.addEventListener('input', onFrameDelayChange);
