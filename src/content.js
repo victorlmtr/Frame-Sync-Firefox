@@ -11,9 +11,9 @@
             this.captureTs = 0;
             this.Resize();
         }
-        CaptureFrame() {
+        CaptureFrame(now) {
             this.ctx.drawImage(this.video, 0, 0, this.frame.width, this.frame.height);
-            this.captureTs = Date.now();
+            this.captureTs = now;
         }
         Resize() {
             const frame = this.frame;
@@ -55,12 +55,24 @@
         }
 
         SetMaxBuffer(maxBuffer) {
+            if (maxBuffer < 2) {
+                console.error('maxBuffer should be at least 2');
+                return;
+            }
+
             this.maxBuffer = maxBuffer;
-            this.buffer = [];
-            for (let i = 0; i < maxBuffer; i++) {
+
+            // Reuse the existing buffer frames
+            const sortedBuffer = this.buffer.filter(frame => frame.captureTs != 0).sort((a, b) => a.captureTs - b.captureTs);
+            const sortedBufferLength = sortedBuffer.length;
+            this.buffer = [...sortedBuffer];
+
+            for (let i = this.buffer.length; i < this.maxBuffer; i++) {
                 const frame = new BufferFrame(this.video);
                 this.buffer.push(frame);
             }
+            this.frameCount = sortedBufferLength;
+            this.lastDelayedFrameIndex = -1;
         }
 
         Resize = () => {
@@ -123,26 +135,46 @@
             this.Resize();
         }
 
-        _captureFrame() {
-            this.buffer[this.frameCount % this.maxBuffer].CaptureFrame();
+        _captureFrame(now, metadata) {
+            if (this.buffer[this.frameCount % this.maxBuffer].captureTs != 0 &&
+                // A little bigger than frameDelayMs to avoid buffer overflow
+                now - this.buffer[this.frameCount % this.maxBuffer].captureTs < Math.min(this.frameDelayMs * 2, this.frameDelayMs + 500)) {
+                this.SetMaxBuffer(Math.round(this.maxBuffer * 1.5));
+            }
+
+            try {
+                this.buffer[this.frameCount % this.maxBuffer].CaptureFrame(now);
+            } catch (e) {
+                debugger;
+            }
             this.frameCount++;
-            const bufferDuration = this.buffer[(this.frameCount - 1) % this.maxBuffer].captureTs - this.buffer[this.frameCount % this.maxBuffer].captureTs;
-            // console.log('bufferDuration', bufferDuration);
+
             if (this.active) {
                 this.video.requestVideoFrameCallback(this._captureFrameFunc);
             }
         }
 
-        _drawFrame() {
-            const ts = Date.now();
-            while ((this.lastDelayedFrameIndex + 1) % this.maxBuffer != this.frameCount % this.maxBuffer
-                && ts - this.buffer[(this.lastDelayedFrameIndex + 1) % this.maxBuffer].captureTs >= this.frameDelayMs) {
+        _shouldShowNextFrame(now) {
+            // if (this.lastDelayedFrameIndex == -1) {
+            //     return true;
+            // }
+            // return Math.abs(now - this.buffer[(this.lastDelayedFrameIndex + 1) % this.maxBuffer].captureTs - this.frameDelayMs)
+            //     < Math.abs(now - this.buffer[(this.lastDelayedFrameIndex) % this.maxBuffer].captureTs - this.frameDelayMs);
+            return now - this.buffer[(this.lastDelayedFrameIndex + 1) % this.maxBuffer].captureTs >= this.frameDelayMs
+        }
+
+        _drawFrame(now) {
+            let canSkip = false;
+            while ((this.lastDelayedFrameIndex + 1) % this.maxBuffer != this.frameCount % this.maxBuffer && this._shouldShowNextFrame(now)) {
                 this.lastDelayedFrameIndex = (this.lastDelayedFrameIndex + 1) % this.maxBuffer;
+                canSkip = true;
             }
-            const delayedFrame = this.buffer[this.lastDelayedFrameIndex];
-            try {
-                this.ctx.drawImage(delayedFrame.frame, 0, 0, this.video.videoWidth, this.video.videoHeight);
-            } catch (e) {
+            if (!canSkip) {
+                const delayedFrame = this.buffer[this.lastDelayedFrameIndex];
+                try {
+                    this.ctx.drawImage(delayedFrame.frame, 0, 0, this.video.videoWidth, this.video.videoHeight);
+                } catch (e) {
+                }
             }
 
             if (this.active) {
@@ -169,7 +201,7 @@
                 videoList.forEach(video => {
                     if (!video.frameSyncObj) {
                         // dynamically extend the max buffer size
-                        const frameSync = new FrameSync(video, 300, frameDelayNum);
+                        const frameSync = new FrameSync(video, 10, frameDelayNum);
                         frameSync.Activate();
                     } else {
                         if (video.frameSyncObj.NeedResize()) {
