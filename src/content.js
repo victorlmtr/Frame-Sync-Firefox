@@ -193,7 +193,8 @@
     }
 
     const frameDelay = (await chrome.storage.sync.get('frameDelay'))['frameDelay'];
-    if (frameDelay) {
+    const pauseDelay = (await chrome.storage.sync.get('pauseDelay'))['pauseDelay'];
+    if (frameDelay && !pauseDelay) {
         const frameDelayNum = parseInt(frameDelay);
         if (frameDelayNum > 0) {
             setInterval(() => {
