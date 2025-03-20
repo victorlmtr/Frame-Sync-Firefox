@@ -1,5 +1,5 @@
 {
-    "manifest_version": 3,
+    "manifest_version": 2,
     "name": "Frame Sync (Fix for Wireless Audio Delay)",
     "version": "1.5",
     "description": "Frame Sync is the best solution for wireless audio delay, syncing video with audio for lag-free playback",
@@ -7,7 +7,7 @@
         "activeTab",
         "storage"
     ],
-    "action": {
+    "browser_action": {
         "default_popup": "popup.html"
     },
     "content_scripts": [
@@ -23,5 +23,10 @@
     ],
     "icons": {
         "256": "icon.png"
+    },
+    "applications": {
+        "gecko": {
+            "id": "frame-sync@example.com"
+        }
     }
 }

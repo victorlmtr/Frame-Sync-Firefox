@@ -1,6 +1,7 @@
 document.getElementById('startButton').addEventListener('click', startTest);
 const useThisDelayButton = document.getElementById('useThisDelayButton');
 const beepDuration = 0.2;
+
 async function startTest() {
     useThisDelayButton.style.display = 'none';
     const resultElement = document.getElementById('result');
@@ -88,7 +89,7 @@ async function startTest() {
             useThisDelayButton.style.display = 'inline';
             useThisDelayButton.onclick = () => {
                 const delayInt = Math.round(delay);
-                chrome.storage.sync.set({ frameDelay: delayInt });
+                browser.storage.sync.set({ frameDelay: delayInt });
                 alert('Delay saved.');
             };
         }

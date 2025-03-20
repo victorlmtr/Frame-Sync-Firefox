@@ -192,25 +192,32 @@
         }
     }
 
-    const frameDelay = (await chrome.storage.sync.get('frameDelay'))['frameDelay'];
-    const pauseDelay = (await chrome.storage.sync.get('pauseDelay'))['pauseDelay'];
-    if (frameDelay && !pauseDelay) {
-        const frameDelayNum = parseInt(frameDelay);
-        if (frameDelayNum > 0) {
-            setInterval(() => {
-                const videoList = document.querySelectorAll('video');
-                videoList.forEach(video => {
-                    if (!video.frameSyncObj) {
-                        // dynamically extend the max buffer size
-                        const frameSync = new FrameSync(video, 10, frameDelayNum);
-                        frameSync.Activate();
-                    } else {
-                        if (video.frameSyncObj.NeedResize()) {
-                            video.frameSyncObj.Resize();
+    try {
+        const frameDelay = (await browser.storage.sync.get('frameDelay')).frameDelay;
+        console.log("Frame delay retrieved from storage:", frameDelay);
+        const pauseDelay = (await browser.storage.sync.get('pauseDelay')).pauseDelay;
+        console.log("Pause delay retrieved from storage:", pauseDelay);
+
+        if (frameDelay && !pauseDelay) {
+            const frameDelayNum = parseInt(frameDelay);
+            if (frameDelayNum > 0) {
+                setInterval(() => {
+                    console.log("Applying frame delay:", frameDelayNum);
+                    const videoList = document.querySelectorAll('video');
+                    videoList.forEach(video => {
+                        if (!video.frameSyncObj) {
+                            const frameSync = new FrameSync(video, 10, frameDelayNum);
+                            frameSync.Activate();
+                        } else {
+                            if (video.frameSyncObj.NeedResize()) {
+                                video.frameSyncObj.Resize();
+                            }
                         }
-                    }
-                });
-            }, 2000);
+                    });
+                }, 2000);
+            }
         }
+    } catch (error) {
+        console.error('Error retrieving or applying frame delay:', error);
     }
 })();
